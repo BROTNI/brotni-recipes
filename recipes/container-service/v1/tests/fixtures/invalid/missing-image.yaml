@@ -1,0 +1,8 @@
+# EXPECTED VALIDATION FAILURE: missing required field candidate.image
+apiVersion: recipe.brotni.com/v1
+kind: ContainerServiceRecipe
+
+metadata:
+  name: missing-image-invalid
+
+candidate: {}

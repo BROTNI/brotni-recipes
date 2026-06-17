@@ -1,0 +1,9 @@
+apiVersion: recipe.brotni.com/v1
+kind: ContainerServiceRecipe
+
+metadata:
+  name: minimal-candidate
+  description: Minimal container-service recipe example.
+
+candidate:
+  image: registry.example.com/my-service@sha256:replace-with-digest

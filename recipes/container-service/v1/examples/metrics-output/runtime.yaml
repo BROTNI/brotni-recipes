@@ -1,0 +1,51 @@
+apiVersion: recipe.brotni.com/v1
+kind: ContainerServiceRecipe
+
+metadata:
+  name: metrics-output-candidate
+  description: Candidate that produces structured metrics output.
+
+candidate:
+  image: registry.example.com/analytics-service@sha256:replace-with-digest
+  source:
+    provider: github
+    repository: example/analytics-service
+    commit: replace-with-commit-sha
+
+runtime:
+  command: ["./analytics-service"]
+  env:
+    MODE: simulation
+
+inputs:
+  mounts:
+    - name: events
+      path: /brotni/input/events.ndjson
+      required: true
+
+outputs:
+  metrics:
+    path: /brotni/output/metrics.json
+    format: json
+  logs:
+    path: /brotni/output/logs
+
+healthcheck:
+  http:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 3
+  timeoutSeconds: 30
+
+resources:
+  cpu: "500m"
+  memory: "512Mi"
+
+timeouts:
+  startupSeconds: 30
+  runSeconds: 300
+  shutdownSeconds: 15
+
+reproducibility:
+  requireImmutableImage: true
+  recordEnvironment: true

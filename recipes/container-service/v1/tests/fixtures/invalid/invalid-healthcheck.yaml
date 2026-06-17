@@ -1,0 +1,13 @@
+# EXPECTED VALIDATION FAILURE: healthcheck.http.port is missing (required field)
+apiVersion: recipe.brotni.com/v1
+kind: ContainerServiceRecipe
+
+metadata:
+  name: invalid-healthcheck
+
+candidate:
+  image: registry.example.com/my-service@sha256:replace-with-digest
+
+healthcheck:
+  http:
+    path: /health

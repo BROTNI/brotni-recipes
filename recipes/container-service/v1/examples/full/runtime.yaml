@@ -1,0 +1,61 @@
+apiVersion: recipe.brotni.com/v1
+kind: ContainerServiceRecipe
+
+metadata:
+  name: routing-service-candidate
+  description: Runs a routing service candidate inside a Brotni-compatible simulation.
+
+candidate:
+  image: registry.example.com/routing-service@sha256:replace-with-digest
+  source:
+    provider: github
+    repository: example/routing-service
+    commit: replace-with-commit-sha
+
+runtime:
+  command: ["./routing-service"]
+  args: ["--mode=simulation"]
+  env:
+    MODE: simulation
+    PORT: "8080"
+  ports:
+    - name: http
+      containerPort: 8080
+
+healthcheck:
+  http:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 5
+  timeoutSeconds: 60
+
+inputs:
+  mounts:
+    - name: replay-events
+      path: /brotni/input/events.ndjson
+      required: true
+
+outputs:
+  metrics:
+    path: /brotni/output/metrics.json
+    format: json
+  decisions:
+    path: /brotni/output/decisions.ndjson
+    format: ndjson
+  logs:
+    path: /brotni/output/logs
+  traces:
+    path: /brotni/output/traces.json
+
+resources:
+  cpu: "500m"
+  memory: "512Mi"
+
+timeouts:
+  startupSeconds: 60
+  runSeconds: 600
+  shutdownSeconds: 30
+
+reproducibility:
+  requireImmutableImage: true
+  recordEnvironment: true
