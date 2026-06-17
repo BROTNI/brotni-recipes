@@ -1,0 +1,27 @@
+name: Validate Recipes
+
+on:
+  push:
+    paths:
+      - 'recipes/**'
+      - 'scripts/validate-recipes.sh'
+  pull_request:
+    paths:
+      - 'recipes/**'
+      - 'scripts/validate-recipes.sh'
+
+jobs:
+  validate:
+    name: Validate recipe schemas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install pyyaml jsonschema
+      - name: Run validation
+        run: bash scripts/validate-recipes.sh
