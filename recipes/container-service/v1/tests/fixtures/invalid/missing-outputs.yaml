@@ -1,0 +1,13 @@
+# EXPECTED VALIDATION FAILURE: outputs.metrics is missing required field 'path'
+apiVersion: recipe.brotni.com/v1
+kind: ContainerServiceRecipe
+
+metadata:
+  name: missing-outputs-invalid
+
+candidate:
+  image: registry.example.com/my-service@sha256:replace-with-digest
+
+outputs:
+  metrics:
+    format: json

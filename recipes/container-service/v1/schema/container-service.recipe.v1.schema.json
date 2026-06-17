@@ -1,0 +1,271 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://brotni.com/schemas/recipes/container-service.recipe.v1.schema.json",
+  "title": "ContainerServiceRecipe",
+  "description": "Schema for Brotni container-service recipe v1. Defines how an immutable containerized service is executed, observed, and evaluated inside a simulation campaign.",
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "candidate"],
+  "additionalProperties": false,
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "recipe.brotni.com/v1",
+      "description": "API version of the recipe spec."
+    },
+    "kind": {
+      "type": "string",
+      "const": "ContainerServiceRecipe",
+      "description": "Kind of recipe."
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Unique name identifying this recipe instance.",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the candidate and its purpose."
+        }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "required": ["image"],
+      "additionalProperties": false,
+      "description": "The candidate artifact to run.",
+      "properties": {
+        "image": {
+          "type": "string",
+          "description": "Container image reference. Strongly recommended to use immutable digest form: registry/image@sha256:...",
+          "minLength": 1
+        },
+        "digest": {
+          "type": "string",
+          "description": "Explicit SHA256 digest of the image for reproducibility verification.",
+          "pattern": "^sha256:[a-fA-F0-9]{64}$"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Source code reference for traceability.",
+          "properties": {
+            "provider": {
+              "type": "string",
+              "description": "Source code provider (e.g., github, gitlab, bitbucket)."
+            },
+            "repository": {
+              "type": "string",
+              "description": "Repository path (e.g., org/repo)."
+            },
+            "commit": {
+              "type": "string",
+              "description": "Exact commit SHA the image was built from."
+            }
+          }
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Runtime execution configuration.",
+      "properties": {
+        "command": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Entrypoint command to run inside the container."
+        },
+        "args": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Arguments to pass to the command."
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Environment variables as key-value string pairs."
+        },
+        "ports": {
+          "type": "array",
+          "description": "Ports exposed by the container.",
+          "items": {
+            "type": "object",
+            "required": ["containerPort"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "containerPort": { "type": "integer", "minimum": 1, "maximum": 65535 },
+              "protocol": {
+                "type": "string",
+                "enum": ["TCP", "UDP"],
+                "default": "TCP"
+              }
+            }
+          }
+        }
+      }
+    },
+    "healthcheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Health check configuration for determining when the service is ready.",
+      "properties": {
+        "http": {
+          "type": "object",
+          "required": ["path", "port"],
+          "additionalProperties": false,
+          "properties": {
+            "path": { "type": "string" },
+            "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+          }
+        },
+        "exec": {
+          "type": "object",
+          "required": ["command"],
+          "additionalProperties": false,
+          "properties": {
+            "command": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "initialDelaySeconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Seconds to wait before starting health checks."
+        },
+        "periodSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "How often to run the health check."
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum time to wait for the service to become healthy."
+        }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Input data to provide to the candidate.",
+      "properties": {
+        "mounts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "path"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "path": { "type": "string" },
+              "required": { "type": "boolean", "default": true }
+            }
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Declared output paths for the simulation to collect.",
+      "properties": {
+        "metrics": {
+          "type": "object",
+          "required": ["path"],
+          "additionalProperties": false,
+          "properties": {
+            "path": { "type": "string" },
+            "format": { "type": "string", "enum": ["json", "ndjson", "csv", "prometheus"] }
+          }
+        },
+        "decisions": {
+          "type": "object",
+          "required": ["path"],
+          "additionalProperties": false,
+          "properties": {
+            "path": { "type": "string" },
+            "format": { "type": "string", "enum": ["json", "ndjson"] }
+          }
+        },
+        "traces": {
+          "type": "object",
+          "required": ["path"],
+          "additionalProperties": false,
+          "properties": {
+            "path": { "type": "string" },
+            "format": { "type": "string", "enum": ["json", "otlp"] }
+          }
+        },
+        "logs": {
+          "type": "object",
+          "required": ["path"],
+          "additionalProperties": false,
+          "properties": {
+            "path": { "type": "string" },
+            "format": { "type": "string", "enum": ["text", "json", "ndjson"] }
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Resource hints for the simulation environment.",
+      "properties": {
+        "cpu": {
+          "type": "string",
+          "description": "CPU request hint (e.g., '500m', '1')."
+        },
+        "memory": {
+          "type": "string",
+          "description": "Memory request hint (e.g., '512Mi', '2Gi')."
+        }
+      }
+    },
+    "timeouts": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Timeout configuration for the simulation run.",
+      "properties": {
+        "startupSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum seconds to wait for the service to start."
+        },
+        "runSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum seconds for the simulation run."
+        },
+        "shutdownSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum seconds to wait for graceful shutdown."
+        }
+      }
+    },
+    "reproducibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Reproducibility enforcement settings.",
+      "properties": {
+        "requireImmutableImage": {
+          "type": "boolean",
+          "description": "If true, the simulation environment must reject mutable image tags."
+        },
+        "recordEnvironment": {
+          "type": "boolean",
+          "description": "If true, the simulation environment records resolved environment variables for audit."
+        }
+      }
+    }
+  }
+}

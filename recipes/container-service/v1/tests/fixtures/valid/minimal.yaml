@@ -1,0 +1,9 @@
+apiVersion: recipe.brotni.com/v1
+kind: ContainerServiceRecipe
+
+metadata:
+  name: minimal-valid
+  description: Minimal valid recipe — only required fields.
+
+candidate:
+  image: registry.example.com/my-service@sha256:replace-with-digest

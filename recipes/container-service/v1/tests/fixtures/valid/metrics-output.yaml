@@ -1,0 +1,13 @@
+apiVersion: recipe.brotni.com/v1
+kind: ContainerServiceRecipe
+
+metadata:
+  name: metrics-output-valid
+
+candidate:
+  image: registry.example.com/analytics-service@sha256:replace-with-digest
+
+outputs:
+  metrics:
+    path: /brotni/output/metrics.json
+    format: json
