@@ -1,0 +1,6 @@
+# EXPECTED VALIDATION FAILURE: missing required field `configuration`
+apiVersion: recipe.brotni.com/v1
+kind: ConfigBundleRecipe
+
+metadata:
+  name: missing-configuration-invalid

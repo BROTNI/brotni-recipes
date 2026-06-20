@@ -76,6 +76,7 @@ See [docs/recipe-versioning.md](docs/recipe-versioning.md) for more.
 | Recipe | Version | Status |
 |--------|---------|--------|
 | [container-service](recipes/container-service/v1/) | v1 | Stable |
+| [config-bundle](recipes/config-bundle/v1/) | v1 | Stable |
 
 ---
 
@@ -84,7 +85,6 @@ See [docs/recipe-versioning.md](docs/recipe-versioning.md) for more.
 The following recipe families are planned for future versions. They are **not yet implemented**.
 
 - `batch-job` — for containerized batch workloads that run to completion
-- `config-bundle` — for configuration artifact validation
 - `script-bundle` — for scripted execution candidates
 - `helm-release` — for Kubernetes Helm chart candidates
 - `package-runtime` — for language runtime package candidates

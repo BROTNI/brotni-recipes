@@ -1,0 +1,10 @@
+# EXPECTED VALIDATION FAILURE: configuration.format is not an allowed value
+apiVersion: recipe.brotni.com/v1
+kind: ConfigBundleRecipe
+
+metadata:
+  name: bad-format-invalid
+
+configuration:
+  format: xml
+  data: "<config/>"

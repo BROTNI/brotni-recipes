@@ -1,0 +1,13 @@
+# EXPECTED VALIDATION FAILURE: configuration must provide exactly one of `data` or `ref`, not both
+apiVersion: recipe.brotni.com/v1
+kind: ConfigBundleRecipe
+
+metadata:
+  name: data-and-ref-invalid
+
+configuration:
+  format: json
+  data: |
+    { "a": 1 }
+  ref:
+    uri: oci://registry.example.com/config/routing-policy

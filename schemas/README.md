@@ -7,6 +7,7 @@ This directory is an index of all published JSON Schemas for Brotni recipe famil
 | Schema | Recipe | Version | Path |
 |--------|--------|---------|------|
 | `container-service.recipe.v1.schema.json` | container-service | v1 | [recipes/container-service/v1/schema/](../recipes/container-service/v1/schema/container-service.recipe.v1.schema.json) |
+| `config-bundle.recipe.v1.schema.json` | config-bundle | v1 | [recipes/config-bundle/v1/schema/](../recipes/config-bundle/v1/schema/config-bundle.recipe.v1.schema.json) |
 
 ## Schema locations
 

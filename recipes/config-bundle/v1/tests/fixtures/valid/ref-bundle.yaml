@@ -1,0 +1,17 @@
+apiVersion: recipe.brotni.com/v1
+kind: ConfigBundleRecipe
+
+metadata:
+  name: ref-bundle-valid
+  description: Valid config-bundle recipe referencing an external immutable bundle.
+
+configuration:
+  format: yaml
+  ref:
+    uri: oci://registry.example.com/config/routing-policy
+    digest: sha256:2222222222222222222222222222222222222222222222222222222222222222
+  appliesTo: routing-service
+
+reproducibility:
+  requireDigest: true
+  recordConfigDigest: true

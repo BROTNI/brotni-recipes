@@ -6,17 +6,18 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SCHEMA="${REPO_ROOT}/recipes/container-service/v1/schema/container-service.recipe.v1.schema.json"
 
 PASS=0
 FAIL=0
 
+# validate_file <file> <schema> <expect_valid>
 validate_file() {
   local file="$1"
-  local expect_valid="${2:-true}"
+  local schema="$2"
+  local expect_valid="${3:-true}"
 
-  result=$(python3 - <<PYEOF
-import json, sys
+  result=$(SCHEMA="$schema" FILE="$file" python3 - <<'PYEOF'
+import json, os, sys
 try:
     import yaml
 except ImportError:
@@ -28,9 +29,9 @@ except ImportError:
     print("ERROR: jsonschema not installed. Run: pip install pyyaml jsonschema")
     sys.exit(2)
 
-with open("${SCHEMA}") as f:
+with open(os.environ["SCHEMA"]) as f:
     schema = json.load(f)
-with open("${file}") as f:
+with open(os.environ["FILE"]) as f:
     data = yaml.safe_load(f)
 try:
     jsonschema.validate(instance=data, schema=schema)
@@ -60,36 +61,41 @@ PYEOF
   fi
 }
 
-echo "=== Validating container-service/v1 examples ==="
-for f in "${REPO_ROOT}/recipes/container-service/v1/examples/"*/runtime.yaml; do
-  if validate_file "$f" "true"; then
-    ((PASS++)) || true
-  else
-    ((FAIL++)) || true
-  fi
-done
+# validate_family <family> <version> <schema>
+validate_family() {
+  local family="$1"
+  local version="$2"
+  local schema="$3"
+  local base="${REPO_ROOT}/recipes/${family}/${version}"
 
-echo ""
-echo "=== Validating container-service/v1 valid fixtures ==="
-for f in "${REPO_ROOT}/recipes/container-service/v1/tests/fixtures/valid/"*.yaml; do
-  if validate_file "$f" "true"; then
-    ((PASS++)) || true
-  else
-    ((FAIL++)) || true
-  fi
-done
+  echo "=== Validating ${family}/${version} examples ==="
+  for f in "${base}/examples/"*/*.yaml; do
+    [ -e "$f" ] || continue
+    if validate_file "$f" "$schema" "true"; then ((PASS++)) || true; else ((FAIL++)) || true; fi
+  done
 
-echo ""
-echo "=== Validating container-service/v1 invalid fixtures (expect failures) ==="
-for f in "${REPO_ROOT}/recipes/container-service/v1/tests/fixtures/invalid/"*.yaml; do
-  if validate_file "$f" "false"; then
-    ((PASS++)) || true
-  else
-    ((FAIL++)) || true
-  fi
-done
+  echo ""
+  echo "=== Validating ${family}/${version} valid fixtures ==="
+  for f in "${base}/tests/fixtures/valid/"*.yaml; do
+    [ -e "$f" ] || continue
+    if validate_file "$f" "$schema" "true"; then ((PASS++)) || true; else ((FAIL++)) || true; fi
+  done
 
-echo ""
+  echo ""
+  echo "=== Validating ${family}/${version} invalid fixtures (expect failures) ==="
+  for f in "${base}/tests/fixtures/invalid/"*.yaml; do
+    [ -e "$f" ] || continue
+    if validate_file "$f" "$schema" "false"; then ((PASS++)) || true; else ((FAIL++)) || true; fi
+  done
+  echo ""
+}
+
+validate_family "container-service" "v1" \
+  "${REPO_ROOT}/recipes/container-service/v1/schema/container-service.recipe.v1.schema.json"
+
+validate_family "config-bundle" "v1" \
+  "${REPO_ROOT}/recipes/config-bundle/v1/schema/config-bundle.recipe.v1.schema.json"
+
 echo "=== Results ==="
 echo "  Passed: ${PASS}"
 echo "  Failed: ${FAIL}"

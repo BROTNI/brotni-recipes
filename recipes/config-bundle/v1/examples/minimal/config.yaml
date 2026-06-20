@@ -1,0 +1,14 @@
+apiVersion: recipe.brotni.com/v1
+kind: ConfigBundleRecipe
+
+metadata:
+  name: minimal-config-candidate
+  description: Minimal config-bundle recipe example.
+
+configuration:
+  format: json
+  data: |
+    {
+      "feature_flags": { "new_router": true },
+      "limits": { "max_connections": 1000 }
+    }

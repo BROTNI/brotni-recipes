@@ -1,0 +1,197 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://brotni.com/schemas/recipes/config-bundle.recipe.v1.schema.json",
+  "title": "ConfigBundleRecipe",
+  "description": "Schema for Brotni config-bundle recipe v1. Defines how a configuration or policy bundle candidate is materialized, applied, observed, and evaluated inside a simulation campaign. The candidate's identity is the immutable content digest of the bundle, not a mutable version label.",
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "configuration"],
+  "additionalProperties": false,
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "recipe.brotni.com/v1",
+      "description": "API version of the recipe spec."
+    },
+    "kind": {
+      "type": "string",
+      "const": "ConfigBundleRecipe",
+      "description": "Kind of recipe."
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Unique name identifying this recipe instance.",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the config bundle and its purpose."
+        }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "required": ["format"],
+      "additionalProperties": false,
+      "description": "The configuration/policy bundle under evaluation. Provide exactly one of `data` (inline) or `ref` (external reference).",
+      "oneOf": [
+        { "required": ["data"] },
+        { "required": ["ref"] }
+      ],
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": ["json", "yaml", "toml", "env", "properties", "ini", "hcl"],
+          "description": "Encoding of the configuration content."
+        },
+        "data": {
+          "type": "string",
+          "description": "Inline configuration content as a string."
+        },
+        "ref": {
+          "type": "object",
+          "required": ["uri"],
+          "additionalProperties": false,
+          "description": "Reference to an externally stored bundle (e.g. an OCI artifact or object store path).",
+          "properties": {
+            "uri": { "type": "string", "minLength": 1 },
+            "digest": {
+              "type": "string",
+              "description": "Content digest of the referenced bundle for reproducibility.",
+              "pattern": "^sha256:[a-fA-F0-9]{64}$"
+            }
+          }
+        },
+        "digest": {
+          "type": "string",
+          "description": "Explicit SHA256 digest of the inline configuration content. This is the candidate's immutable identity.",
+          "pattern": "^sha256:[a-fA-F0-9]{64}$"
+        },
+        "appliesTo": {
+          "type": "string",
+          "description": "Optional logical target the configuration applies to (e.g. service name or component)."
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Source reference for traceability.",
+          "properties": {
+            "provider": { "type": "string", "description": "Source provider (e.g., github, gitlab, nexus, artifactory)." },
+            "repository": { "type": "string", "description": "Repository or repository path." },
+            "commit": { "type": "string", "description": "Exact commit SHA the bundle was produced from." }
+          }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "How the configuration bundle should be validated before the run.",
+      "properties": {
+        "schema": {
+          "type": "string",
+          "description": "Path or URI of a schema the configuration must satisfy."
+        },
+        "rules": {
+          "type": "array",
+          "description": "Named assertion rules evaluated against the configuration.",
+          "items": {
+            "type": "object",
+            "required": ["name", "expression"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "expression": { "type": "string", "description": "Assertion expression, e.g. 'feature_flags.new_router == true'." },
+              "severity": { "type": "string", "enum": ["blocking", "warning"], "default": "blocking" }
+            }
+          }
+        }
+      }
+    },
+    "apply": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "How the configuration is applied within the simulation context.",
+      "properties": {
+        "mountPath": {
+          "type": "string",
+          "description": "Filesystem path where the configuration is materialized inside the run."
+        },
+        "envPrefix": {
+          "type": "string",
+          "description": "When set, configuration keys are also exposed as environment variables with this prefix."
+        },
+        "reloadCommand": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Optional command to signal the target to reload configuration."
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Declared output paths for the simulation to collect.",
+      "properties": {
+        "metrics": {
+          "type": "object",
+          "required": ["path"],
+          "additionalProperties": false,
+          "properties": {
+            "path": { "type": "string" },
+            "format": { "type": "string", "enum": ["json", "ndjson", "csv", "prometheus"] }
+          }
+        },
+        "decisions": {
+          "type": "object",
+          "required": ["path"],
+          "additionalProperties": false,
+          "properties": {
+            "path": { "type": "string" },
+            "format": { "type": "string", "enum": ["json", "ndjson"] }
+          }
+        },
+        "logs": {
+          "type": "object",
+          "required": ["path"],
+          "additionalProperties": false,
+          "properties": {
+            "path": { "type": "string" },
+            "format": { "type": "string", "enum": ["text", "json", "ndjson"] }
+          }
+        }
+      }
+    },
+    "timeouts": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Timeout configuration for the simulation run.",
+      "properties": {
+        "runSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum seconds for the simulation run."
+        }
+      }
+    },
+    "reproducibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Reproducibility enforcement settings.",
+      "properties": {
+        "requireDigest": {
+          "type": "boolean",
+          "description": "If true, the simulation environment must reject bundles without a content digest."
+        },
+        "recordConfigDigest": {
+          "type": "boolean",
+          "description": "If true, the simulation environment records the resolved configuration digest for audit."
+        }
+      }
+    }
+  }
+}
